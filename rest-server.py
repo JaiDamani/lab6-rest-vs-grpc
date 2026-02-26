@@ -53,12 +53,37 @@ def rawimage():
 
 @app.route('/api/dotproduct', methods=['POST'])
 def dotproduct():
-    pass
+    r = request
+    try:
+        data = r.get_json()
+        a = data.get('a', [])
+        b = data.get('b', [])
+        dot_product = sum([x * y for x, y in zip(a, b)])
+        response = {'dotproduct': dot_product}
+    except Exception as e:
+        response = {'error': str(e)}
+    response_pickled = jsonpickle.encode(response)
+    return Response(response=response_pickled, status=200, mimetype="application/json")
 
 # route http posts to this method
 @app.route('/api/jsonimage', methods=['POST'])
 def jsonimage():
-    pass
+    r = request
+    try:
+        data = r.get_json()
+        img_b64 = data.get('image', '')
+        img_bytes = base64.b64decode(img_b64)
+        ioBuffer = io.BytesIO(img_bytes)
+        img = Image.open(ioBuffer)
+        response = {
+            'width' : img.size[0],
+            'height' : img.size[1]
+        }
+    except Exception as e:
+        response = { 'width' : 0, 'height' : 0, 'error': str(e)}
+    response_pickled = jsonpickle.encode(response)
+
+    return Response(response=response_pickled, status=200, mimetype="application/json")
 
 # start flask app
-app.run(host="0.0.0.0", port=5000)
+app.run(host="0.0.0.0", port=5000, threaded=True)
